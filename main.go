@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -74,6 +75,11 @@ func main() {
 	// 加载配置文件
 	config, err := loadConfig("config.yaml")
 
+	if err != nil {
+		fmt.Printf("Failed to load config: %v\n", err)
+		os.Exit(1)
+	}
+
 	// 初始化MySQL存储
 	mysqlStorage = storage.NewMySQLStorage(storage.MySQLConfig{
 		Host:     config.MySQL.Host,
@@ -82,10 +88,6 @@ func main() {
 		Password: config.MySQL.Password,
 		Table:    config.MySQL.Table,
 	})
-	if err != nil {
-		fmt.Printf("Failed to load config: %v\n", err)
-		os.Exit(1)
-	}
 
 	// 创建 Kafka 客户端
 	client, err := createKafkaClient(config)
@@ -232,100 +234,113 @@ func (s *LagStats) update(lag int64) {
 }
 
 func checkConsumerLag(client sarama.Client, config *Config, logger *zap.Logger) {
+	var wg sync.WaitGroup
 	for _, topic := range config.Kafka.Topics {
-		latestOffsets, err := getLatestOffsets(client, topic.Name)
-		if err != nil {
-			logger.Error("获取最新offset失败",
-				zap.String("topic", topic.Name),
-				zap.Error(err))
-			continue
-		}
-
-		for _, group := range topic.Groups {
-			stats := &LagStats{
-				Topic: topic.Name,
-				Group: group.Name,
-			}
-
-			currentOffsets, err := getConsumerOffsets(client, group.Name, topic.Name)
+		topic := topic
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			latestOffsets, err := getLatestOffsets(client, topic.Name)
 			if err != nil {
-				logger.Error("获取消费offset失败",
-					zap.String("group", group.Name),
+				logger.Error("获取最新offset失败",
+					zap.String("topic", topic.Name),
 					zap.Error(err))
-				continue
+				return
 			}
 
-			var maxLag int64
-			for partition, offset := range currentOffsets {
-				lag := latestOffsets[partition] - offset
-				stats.update(lag)
-				if lag > maxLag {
-					maxLag = lag
+			for _, group := range topic.Groups {
+				stats := &LagStats{
+					Topic: topic.Name,
+					Group: group.Name,
 				}
 
-				// 记录分区级详细日志
-				if lag > group.AlertThreshold {
-					logger.Info("分区延迟超过阈值详情",
-						zap.String("topic", stats.Topic),
-						zap.String("group", stats.Group),
-						zap.Int32("partition", partition),
-						zap.Int64("lag", lag))
-				}
-
-			}
-
-			// 触发阈值告警
-			if stats.Total > group.AlertThreshold {
-				logger.Warn("消费延迟超过阈值",
-					zap.String("topic", stats.Topic),
-					zap.String("group", stats.Group),
-					zap.Int64("threshold", group.AlertThreshold),
-					zap.Int64("current", stats.Total))
-
-				if group.IsNotify {
-					// 发送API告警
-					go sendAlert(config, stats.Topic, stats.Group, stats.Total, group.AlertThreshold, topic.NotifyList, logger)
-				}
-
-			}
-
-			batchNo := time.Now().Format("200601021504")
-			// 存储到MySQL并记录汇总日志
-			if stats.Count > 0 {
-				record := storage.LagRecord{
-					StatsDate:       time.Now().Format("2006-01-02"),
-					BatchNo:         batchNo,
-					Topic:           stats.Topic,
-					ConsumerGroup:   stats.Group,
-					TotalLag:        stats.Total,
-					MaxLag:          stats.Max,
-					CurrentLag:      stats.Max,
-					AvgLag:          stats.Total / int64(stats.Count),
-					PartitionCounts: stats.Count,
-					IsAlert:         stats.Total > group.AlertThreshold,
-					Threshold:       group.AlertThreshold,
-					RecordTime:      time.Now().Format("2006-01-02 15:04:05"),
-				}
-
-				if err := mysqlStorage.InsertLagRecord(record); err != nil {
-					logger.Error("存储监控数据失败",
-						zap.String("topic", stats.Topic),
-						zap.String("group", stats.Group),
+				currentOffsets, err := getConsumerOffsets(client, group.Name, topic.Name)
+				if err != nil {
+					logger.Error("获取消费offset失败",
+						zap.String("group", group.Name),
 						zap.Error(err))
+					continue
 				}
 
-				avg := float64(stats.Total) / float64(stats.Count)
-				logger.Info("消费延迟统计",
-					zap.String("topic", stats.Topic),
-					zap.String("group", stats.Group),
-					zap.Int64("total_lag", stats.Total),
-					zap.Int64("max_lag", stats.Max),
-					zap.Int64("min_lag", stats.Min),
-					zap.Float64("avg_lag", avg),
-					zap.Int("partitions", stats.Count))
-			}
-		}
+				var maxLag int64
+				for partition, offset := range currentOffsets {
+					lag := latestOffsets[partition] - offset
+					stats.update(lag)
+					if lag > maxLag {
+						maxLag = lag
+					}
+
+					// 记录分区级详细日志
+					if lag > group.AlertThreshold {
+						logger.Info("分区延迟超过阈值详情",
+							zap.String("topic", stats.Topic),
+							zap.String("group", stats.Group),
+							zap.Int32("partition", partition),
+							zap.Int64("lag", lag))
+					}
+
+				}
+
+				// 触发阈值告警
+				if stats.Total > group.AlertThreshold {
+					logger.Warn("消费延迟超过阈值",
+						zap.String("topic", stats.Topic),
+						zap.String("group", stats.Group),
+						zap.Int64("threshold", group.AlertThreshold),
+						zap.Int64("current", stats.Total))
+
+					if group.IsNotify {
+						// 发送API告警
+						// 复制变量避免竞态
+						alertConfig := config
+						currentTopic := topic
+						currentGroup := group
+						go func() {
+							sendAlert(alertConfig, stats.Topic, stats.Group, stats.Total, currentGroup.AlertThreshold, currentTopic.NotifyList, logger)
+						}()
+					}
+
+				}
+
+				batchNo := time.Now().Format("200601021504")
+				// 存储到MySQL并记录汇总日志
+				if stats.Count > 0 {
+					record := storage.LagRecord{
+						StatsDate:       time.Now().Format("2006-01-02"),
+						BatchNo:         batchNo,
+						Topic:           stats.Topic,
+						ConsumerGroup:   stats.Group,
+						TotalLag:        stats.Total,
+						MaxLag:          stats.Max,
+						CurrentLag:      stats.Max,
+						AvgLag:          stats.Total / int64(stats.Count),
+						PartitionCounts: stats.Count,
+						IsAlert:         stats.Total > group.AlertThreshold,
+						Threshold:       group.AlertThreshold,
+						RecordTime:      time.Now().Format("2006-01-02 15:04:05"),
+					}
+
+					if err := mysqlStorage.InsertLagRecord(record); err != nil {
+						logger.Error("存储监控数据失败",
+							zap.String("topic", stats.Topic),
+							zap.String("group", stats.Group),
+							zap.Error(err))
+					}
+
+					avg := float64(stats.Total) / float64(stats.Count)
+					logger.Info("消费延迟统计",
+						zap.String("topic", stats.Topic),
+						zap.String("group", stats.Group),
+						zap.Int64("total_lag", stats.Total),
+						zap.Int64("max_lag", stats.Max),
+						zap.Int64("min_lag", stats.Min),
+						zap.Float64("avg_lag", avg),
+						zap.Int("partitions", stats.Count))
+				}
+			} // end groups loop
+		}()
 	}
+	wg.Wait()
 }
 
 func getLatestOffsets(client sarama.Client, topic string) (map[int32]int64, error) {

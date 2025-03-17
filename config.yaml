@@ -2,23 +2,385 @@ kafka:
   brokers:
     - 127.0.0.1:9092
   topics:
-    - name: payment_events
+    - name: bd_cancel_ticket
       groups:
-        - name: payment_processor
-          alert_threshold: 0  # 告警阈值（消息数）
-          is_notify: false
-        - name: fraud_detection
-          alert_threshold: 100
+        - name: group_bd_cancel_ticket_clerk
+          alert_threshold: 1000000  # 告警阈值（消息数）
+          is_notify: true
+        - name: group_bd_cancel_unit_clerk
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_bd_ticket_unit
+          alert_threshold: 1000000
+          is_notify: true
+      notify_list:
+        - hudengjin
+        - liuyinqiang
+
+    - name: bd_paid_ticket
+      groups:
+        - name: group_bd_paid_ticket
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_bd_paid_ticket_som
+          alert_threshold: 1000000
+          is_notify: true
+      notify_list:
+        - hudengjin
+        - liuyinqiang
+
+    - name: bd_ticket
+      groups:
+        - name: group_bd_ticket
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_bd_ticket_unit
+          alert_threshold: 1000000
+          is_notify: true
+      notify_list:
+        - hudengjin
+        - liuyinqiang
+
+    - name: bd_undo_ticket
+      groups:
+        - name: group_bd_ticket_unit_undo
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_bd_undo_ticket
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_bd_combination_detail_rollback
+          alert_threshold: 1000000
+          is_notify: true
+      notify_list:
+        - hudengjin
+        - liuyinqiang
+
+    - name: csljc-cancel-g3
+      groups:
+        - name: group_starrocks_csljc_cancel_g3
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_csljc_cancel_g3_css
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_csljc_cancel_g3_unit
+          alert_threshold: 1000000
+          is_notify: true
+      notify_list:
+        - hudengjin
+        - liuyinqiang
+
+    - name: csljc-pay-cb-g3
+      groups:
+        - name: group_starrocks_csljc_pay_cb_g3
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_csljc_pay_cb_g3_css
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_csljc_pay_cb_g3_css_som
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_csljc_pay_cb_g3_som
+          alert_threshold: 1000000
+          is_notify: true
+      notify_list:
+        - hudengjin
+        - liuyinqiang
+
+    - name: csljc-sales-g3
+      groups:
+        - name: group_starrocks_csljc_sales_g3
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_csljc_sales_g3_css
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_csljc_sales_g3_unit
+          alert_threshold: 1000000
+          is_notify: true
+      notify_list:
+        - hudengjin
+        - liuyinqiang
+
+    - name: csljc-win-g3
+      groups:
+        - name: group_starrocks_csljc_win_g3
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_csljc_win_g3_css
+          alert_threshold: 1000000
           is_notify: false
       notify_list:
         - hudengjin
-    - name: user_activity
+        - liuyinqiang
+
+    - name: ob_igtdb_canal
       groups:
-        - name: analytics
-          alert_threshold: 100
+        - name: group_starrocks_dwd_dim_dim_ild_game
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_dim_dim_ild_game_spec
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_dim_dim_ild_material
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_dim_dim_ild_prize_promotion_activity
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_dim_dim_ild_prize_promotion_level_material
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_dim_dim_ild_prize_promotion_organization
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_dim_dim_ild_product
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_dim_dim_ild_product_container_level
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_dim_dim_ild_product_oss
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_dim_dim_ild_product_print_batch
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_dim_dim_ild_product_prize_level
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_dim_dim_ild_product_spec
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_dim_dim_ild_system_parameter
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_ap_not_win_ticket_paid_record
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_ap_paid_exception_record
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_ap_paid_record
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_ap_paid_record_oss
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_active_detail
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_active_detail_oss
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_deactive_detail
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_deactive_detail_oss
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_igt_container
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_igt_package
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_sp_prize_promotion_paid_record
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_sp_prize_promotion_paid_ticket
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_shop_inventory
+          alert_threshold: 1000000
+          is_notify: true
+      notify_list:
+        - hudengjin
+        - liuyinqiang
+
+    - name: ob_igmdb_canal
+      groups:
+        - name: group_starrocks_dwd_dim_dim_ild_product_attachment
+          alert_threshold: 1000
+          is_notify: true
+        - name: group_starrocks_dwd_dim_dim_ild_game_play_detail
+          alert_threshold: 1000
           is_notify: false
       notify_list:
         - hudengjin
+        - liuyinqiang
+
+    - name: ob_lgmdb_serial_detail_canal
+      groups:
+        - name: group_starrocks_c_game_draw_for_trad_fb_win
+          alert_threshold: 10000
+          is_notify: true
+      notify_list:
+        - hudengjin
+        - liuyinqiang
+
+    - name: ob_lgtdb_serial_detail_canal
+      groups:
+        - name: group_starrocks_lotto_t_cancel_ticket
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_lotto_t_cancel_ticket_unit
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_lotto_t_paid_ticket
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_lotto_t_ticket
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_lotto_t_ticket_combo_unit
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_lotto_t_ticket_mix_unit
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_lotto_t_ticket_unit
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_trad_fb_t_bet_sale
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_trad_fb_t_bet_sale_cancel
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_trad_fb_t_cancel_ticket
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_trad_fb_t_paid_ticket
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_trad_fb_t_ticket
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_trad_fb_t_win_ticket
+          alert_threshold: 1000000
+          is_notify: true
+      notify_list:
+        - hudengjin
+        - liuyinqiang
+
+    - name: ob_licdb_canal
+      groups:
+        - name: group_starrocks_dwd_ild_dwd_ild_lic_container
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_lic_package
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_order_change_record
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_order_detail
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_parcel_bill
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_shipping_bill
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_sr_inventory
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_transit_inventory
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_dwd_ild_dwd_ild_warehs_inventory
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_alloc_bill
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_alloc_out_warehs_bill
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_alloc_parcel_bill
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_alloc_parcel_container
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_alloc_parcel_in_out_relation
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_exception_out_warehs_bill
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_exception_out_warehs_container_detail
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_in_warehs_bill
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_in_warehs_bill_detail
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_national_warehs_in_bill
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_out_warehs_bill
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_out_warehs_bill_detail
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_out_warehs_bill_relation_bill
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_receive_bill
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_receive_bill_container_detail
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_receive_bill_detail
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_return_bill
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_return_bill_container_detail
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_return_bill_detail
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_shipping_bill
+          alert_threshold: 1000000
+          is_notify: true
+        - name: group_starrocks_ods_licdb_t_shipping_bill_detail
+          alert_threshold: 1000000
+          is_notify: true
+      notify_list:
+        - hudengjin
+        - liuyinqiang
+
+    - name: unifiedAppUserBehaviorLog
+      groups:
+        - name: hdj004
+          alert_threshold: 1000000
+          is_notify: true
+      notify_list:
+        - hudengjin
+
+    - name: upload_data_to_g3_data
+      groups:
+        - name: com.csl.streaming.digital.DigitalBusinessDataSink2JDBC_business
+          alert_threshold: 1000000
+          is_notify: true
+        - name: com.csl.streaming.digital.DigitalBusinessDataCalibration_business
+          alert_threshold: 1000000
+          is_notify: true
+      notify_list:
+        - hudengjin
+        - shenkai
 
 alert:
   api_url: "http://198.3.100.93:18088/dmm/sendMsg"  # 告警API地址
