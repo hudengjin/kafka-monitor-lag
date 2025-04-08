@@ -217,9 +217,9 @@ type AlertContent struct {
 }
 
 type AlertBody struct {
-	ToUser  string       `json:"toUser"`
-	MsgType string       `json:"msgType"`
-	Content AlertContent `json:"content"`
+	ToUser  string `json:"toUser"`
+	MsgType string `json:"msgType"`
+	Content string `json:"content"`
 }
 
 func (s *LagStats) update(lag int64) {
@@ -372,15 +372,22 @@ func parseDuration(durationStr string) time.Duration {
 // 发送告警到API
 func sendAlert(config *Config, topic string, group string, currentLag int64, threshold int64, notifyList []string, logger *zap.Logger) {
 
+	message := fmt.Sprintf("【Kafka 消费延迟监控-Dinky-Flink】\n"+
+		"> 主题：%s \n "+
+		"> 消费者组：%s \n"+
+		"> 延迟：<font color=\"warning\"> %d </font> \n"+
+		"> 阈值：%d \n"+
+		"> 告警时间：%s \n",
+		topic,
+		group,
+		currentLag,
+		threshold,
+		time.Now().Format("2006-01-02 15:04:05"),
+	)
 	alertBody := AlertBody{
 		ToUser:  strings.Join(notifyList, "|"),
-		MsgType: "text",
-		Content: AlertContent{
-			Topic:      topic,
-			Group:      group,
-			CurrentLag: currentLag,
-			Threshold:  threshold,
-		},
+		MsgType: "markdown",
+		Content: message,
 	}
 
 	jsonBody, _ := json.Marshal(alertBody)
